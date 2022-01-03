@@ -95,6 +95,7 @@ while client.is_running() == 'true':
                         object_hook=lambda d: SimpleNamespace(**d)).Agents
     agents = [agent.Agent for agent in agents]
     for a in agents:
+        print("agent: ",a)
         x, y, _ = a.pos.split(',')
         a.pos = SimpleNamespace(x=my_scale(
             float(x), x=True), y=my_scale(float(y), y=True))
@@ -166,4 +167,9 @@ while client.is_running() == 'true':
             print(ttl, client.get_info())
 
     client.move()
+
+
+
+    def the_closet():
+        pass
 # game over:

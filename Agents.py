@@ -11,7 +11,7 @@ class Agents:
         self.speed = speed
         self.x = pos[0]
         self.y = pos[1]
-        self.graph = DiGraph(graph)
+        self.graph = graph
 
     def shortest_dist(self, i: int) -> float:
         if self.dest != -1:

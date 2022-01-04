@@ -3,11 +3,13 @@
 OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
+import sys
 from types import SimpleNamespace
 
 from Agents import Agents
 from Pokemon import Pokemon
 from api.DiGraph import DiGraph
+from api.GraphAlgo import GraphAlgo
 from client import Client
 import json
 from pygame import gfxdraw
@@ -20,7 +22,9 @@ def get_graph(graph_json):
     graph = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
     g = DiGraph()
     for node in graph.Nodes:
-        g.add_node(node.id)
+        x1, y1, _ = node.pos.split(',')
+        node.pos = (float(x1), float(y1), 0)
+        g.add_node(node.id, node.pos)
     for edge in graph.Edges:
         g.add_edge(edge.src, edge.dest, edge.w)
     return g
@@ -47,10 +51,10 @@ class Student_code:
         self.client = Client()
         self.client.start_connection(self.HOST, self.PORT)
         self.pokemons = self.client.get_pokemons()
-        pokemons_obj = json.loads(self.pokemons, object_hook=lambda d: SimpleNamespace(**d))
         print(self.pokemons)
         graph_json = self.client.get_graph()
         self.graph = get_graph(graph_json)
+        print(self.graph.Edges)
         self.list_pok = self.get_list_pokemon()
         self.paint_g = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         for node in self.paint_g.Nodes:
@@ -60,6 +64,12 @@ class Student_code:
         self.min_y = min(list(self.paint_g.Nodes), key=lambda n1: n1.pos.y).pos.y
         self.max_x = max(list(self.paint_g.Nodes), key=lambda n1: n1.pos.x).pos.x
         self.max_y = max(list(self.paint_g.Nodes), key=lambda n1: n1.pos.y).pos.y
+        self.paths = dict()
+        self.ag = None
+        print("9**: ", self.paint_g.Nodes[9].pos)
+        print("8**: ", self.paint_g.Nodes[8].pos)
+        print("9: ", self.graph.get_all_v()[9].x, ",", self.graph.get_all_v()[9].y)
+        print("8: ", self.graph.get_all_v()[8].x, ",", self.graph.get_all_v()[8].y)
         self.game()
 
     def game(self):
@@ -68,8 +78,10 @@ class Student_code:
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
         radius = 15
 
-        self.client.add_agent("{\"id\":0}")
-        # client.add_agent("{\"id\":1}")
+        src = self.edge(self.list_pok[0])[0]
+        print("start:", src)
+        self.client.add_agent("{\"id\":" + str(src) + "}")
+        self.client.add_agent("{\"id\":1}")
         # client.add_agent("{\"id\":2}")
         # client.add_agent("{\"id\":3}")
         self.client.start()
@@ -88,7 +100,7 @@ class Student_code:
                 x, y, _ = a.pos.split(',')
                 a.pos = SimpleNamespace(x=self.my_scale(
                     float(x), x=True), y=self.my_scale(float(y), y=True))
-            ag = self.get_list_agents()
+            self.ag = self.get_list_agents()
             for eve in pygame.event.get():
                 if eve.type == pygame.QUIT:
                     pygame.quit()
@@ -125,29 +137,72 @@ class Student_code:
                                    (int(agent.pos.x), int(agent.pos.y)), 10)
             # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
             for p in pokemons:
-                print("Pokemon: ", p)
                 pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
 
             # update screen changes
             display.update()
 
-            # refresh rate
             self.clock.tick(60)
+            self.algo()
 
-            # choose next edge
+    def algo(self):
+        print("path1:", self.ag[0].path)
+        p = []
+        for agent in self.ag.keys():
+            m = sys.maxsize
+            i = None
+            p = []
+            if not self.ag[agent].path:
+                for pok in self.list_pok:
+                    edge = self.edge(pok)
+                    src = edge[0]
+                    dest = edge[1]
+                    if pok.type < 0:
+                        if src < dest:
+                            temp = src
+                            src = dest
+                            dest = temp
+                    else:
+                        if src > dest:
+                            temp = src
+                            src = dest
+                            dest = temp
 
-            self.algo(agents)
-
-            self.client.move()
-
-    def algo(self, agents):
-        for agent in agents:
-            if agent.dest == -1:
-                next_node = (agent.src - 1) % len(self.paint_g.Nodes)
+                    graphAlgo = GraphAlgo(self.graph)
+                    ans = graphAlgo.TSP([self.ag[agent].src, src])
+                    dist = ans[1]
+                    path = ans[0]
+                    if dist < m:
+                        m = dist
+                        i = pok
+                        p = path
+                if i != -1 and p != []:
+                    self.ag[agent].path = p
+                    self.ag[agent].pok = i
+        for i in self.ag.keys():
+            if self.ag[i].path:
+                if self.ag[i].path.__len__ == 2:
+                    x = self.ag[i].path[0]
+                    y = self.ag[i].path[1]
+                    t = self.ag[i].pok.type
+                    if x < y and t < 0:
+                        self.ag[i].path.insert(2, x)
                 self.client.choose_next_edge(
-                    '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
-                ttl = self.client.time_to_end()
-                print(ttl, self.client.get_info())
+                    '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
+                self.ag[i].src = self.ag[i].path[0]
+                if len(self.ag[i].path) > 1:
+                    self.ag[i].dest = self.ag[i].path[1]
+                    self.ag[i].path.remove(self.ag[i].path[0])
+                else:
+                    self.ag[i].dest = -1
+                    self.ag[i].path.remove(self.ag[i].path[0])
+
+        for i in self.ag.keys():
+            self.paths[i] = self.ag[i].path
+
+        self.client.move()
+        ttl = self.client.time_to_end()
+        print(ttl, self.client.get_info())
 
     def get_list_pokemon(self):
         pok = []
@@ -161,7 +216,7 @@ class Student_code:
         return pok
 
     def get_list_agents(self):
-        ag = []
+        ag = dict()
         agents = json.loads(self.client.get_agents(),
                             object_hook=lambda d: SimpleNamespace(**d)).Agents
         agents = [agent.Agent for agent in agents]
@@ -169,7 +224,10 @@ class Student_code:
             x, y, _ = a.pos.split(',')
             pos = (x, y)
             temp = Agents(a.id, a.value, a.src, a.dest, a.speed, pos, self.graph)
-            ag.append(temp)
+            if self.paths != {}:
+                print(a.id)
+                temp.path = self.paths[a.id]
+            ag[a.id] = temp
             a.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
         return ag
 
@@ -180,6 +238,35 @@ class Student_code:
             return scale(data, 50, self.screen.get_width() - 50, self.min_x, self.max_x)
         if y:
             return scale(data, 50, self.screen.get_height() - 50, self.min_y, self.max_y)
+
+    def shortest_dist(self, agent_id, node_id: int) -> float:
+        if self.ag[agent_id].dest == -1:
+            graphAlgo = GraphAlgo(self.graph)
+            dist = graphAlgo.shortest_path(self.ag[agent_id].src, node_id)
+            return dist
+        else:
+            ans = (sys.maxsize, -1)
+            return ans
+
+    def edge(self, pok: Pokemon):
+        pos_i = (pok.x, pok.y)
+        for s in self.graph.Edges.keys():
+            for dest in self.graph.Edges[s].keys():
+                node_src = self.graph.get_all_v()[s]
+                node_dest = self.graph.get_all_v()[dest]
+                pos_src = (node_src.x, node_src.y)
+                pos_dest = (node_dest.x, node_dest.y)
+                if line(pos_src, pos_dest, pos_i):
+                    ans = (s, dest)
+                    return ans
+
+
+def line(pos1: tuple, pos2: tuple, pos3: tuple):
+    m = (pos1[1] - pos2[1]) / (pos1[0] - pos2[0])
+    n = pos1[1] - m * pos1[0]
+    ans = m * pos3[0] + n
+    if 0.0001 > pos3[1] - ans > -0.0001:
+        return True
 
 
 if __name__ == '__main__':

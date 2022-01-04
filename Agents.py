@@ -1,3 +1,5 @@
+import sys
+
 from api.DiGraph import DiGraph
 from api.GraphAlgo import GraphAlgo
 
@@ -12,6 +14,9 @@ class Agents:
         self.x = pos[0]
         self.y = pos[1]
         self.graph = graph
+        self.moving = False
+        self.path = []
+        self.pok=None
 
     def shortest_dist(self, i: int) -> float:
         if self.dest != -1:
@@ -19,5 +24,4 @@ class Agents:
             dist = graphAlgo.shortest_path(self.src, i)[0]
             return dist
         else:
-            return -1
-
+            return sys.maxsize

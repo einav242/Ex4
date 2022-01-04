@@ -82,8 +82,8 @@ class Student_code:
         print("start:", src)
         self.client.add_agent("{\"id\":" + str(src) + "}")
         self.client.add_agent("{\"id\":1}")
-        # client.add_agent("{\"id\":2}")
-        # client.add_agent("{\"id\":3}")
+        self.client.add_agent("{\"id\":2}")
+        self.client.add_agent("{\"id\":3}")
         self.client.start()
         while self.client.is_running() == 'true':
             pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
@@ -144,6 +144,7 @@ class Student_code:
 
             self.clock.tick(60)
             self.algo()
+            self.client.move()
 
     def algo(self):
         print("path1:", self.ag[0].path)
@@ -158,7 +159,7 @@ class Student_code:
                     src = edge[0]
                     dest = edge[1]
                     graphAlgo = GraphAlgo(self.graph)
-                    ans = graphAlgo.TSP([self.ag[agent].src, src,dest])
+                    ans = graphAlgo.TSP([self.ag[agent].src, src, dest])
                     dist = ans[1] + self.graph.Edges[src][dest]
                     path = ans[0]
                     path.append(dest)
@@ -190,7 +191,6 @@ class Student_code:
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
 
-        self.client.move()
         ttl = self.client.time_to_end()
         print(ttl, self.client.get_info())
 
@@ -256,8 +256,32 @@ def line(pos1: tuple, pos2: tuple, pok: Pokemon):
     m = (pos1[1] - pos2[1]) / (pos1[0] - pos2[0])
     n = pos1[1] - m * pos1[0]
     ans = m * pos3[0] + n
-    if 0.0001 > pos3[1] - ans > -0.0001:
+    if 0.000001 > pos3[1] - ans > -0.000001:
         return True
+    # pos3 = (pok.x, pok.y)
+    # d1_3 = distance(pos1, pos3)
+    # d2_3 = distance(pos2, pos3)
+    # d1_2 = distance(pos1, pos2)
+    # ans1 = d1_3 + d2_3
+    # ans2 = d1_2
+    # if 0.0001 > ans1 - ans2 > -0.0001:
+    #     return True
+
+
+def distance(pos1: tuple, pos2: tuple):
+    xx = math_pow((pos1[0] - pos2[0]), 2)
+    yy = math_pow((pos1[1] - pos2[1]), 2)
+    xy = xx + yy
+    ans = math.sqrt(xy)
+    return ans
+
+
+def math_pow(a, b):
+    i = 0
+    ans = 0
+    while i < b:
+        ans *= a
+    return ans
 
 
 if __name__ == '__main__':

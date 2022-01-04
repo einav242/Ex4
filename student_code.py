@@ -157,21 +157,11 @@ class Student_code:
                     edge = self.edge(pok)
                     src = edge[0]
                     dest = edge[1]
-                    if pok.type < 0:
-                        if src < dest:
-                            temp = src
-                            src = dest
-                            dest = temp
-                    else:
-                        if src > dest:
-                            temp = src
-                            src = dest
-                            dest = temp
-
                     graphAlgo = GraphAlgo(self.graph)
-                    ans = graphAlgo.TSP([self.ag[agent].src, src])
-                    dist = ans[1]
+                    ans = graphAlgo.TSP([self.ag[agent].src, src,dest])
+                    dist = ans[1] + self.graph.Edges[src][dest]
                     path = ans[0]
+                    path.append(dest)
                     if dist < m:
                         m = dist
                         i = pok
@@ -249,19 +239,20 @@ class Student_code:
             return ans
 
     def edge(self, pok: Pokemon):
-        pos_i = (pok.x, pok.y)
         for s in self.graph.Edges.keys():
             for dest in self.graph.Edges[s].keys():
                 node_src = self.graph.get_all_v()[s]
                 node_dest = self.graph.get_all_v()[dest]
                 pos_src = (node_src.x, node_src.y)
                 pos_dest = (node_dest.x, node_dest.y)
-                if line(pos_src, pos_dest, pos_i):
-                    ans = (s, dest)
-                    return ans
+                if line(pos_src, pos_dest, pok):
+                    if (pok.type < 0 and s > dest) or (pok.type > 0 and s < dest):
+                        ans = (s, dest)
+                        return ans
 
 
-def line(pos1: tuple, pos2: tuple, pos3: tuple):
+def line(pos1: tuple, pos2: tuple, pok: Pokemon):
+    pos3 = (pok.x, pok.y)
     m = (pos1[1] - pos2[1]) / (pos1[0] - pos2[0])
     n = pos1[1] - m * pos1[0]
     ans = m * pos3[0] + n

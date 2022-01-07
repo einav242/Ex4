@@ -4,6 +4,7 @@ OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
 import sys
+from asyncio import wait
 from types import SimpleNamespace
 
 from Agents import Agents
@@ -30,6 +31,27 @@ def get_graph(graph_json):
     return g
 
 
+def math_pow(a, b):
+    i = 0
+    ans = 0
+    while i < b:
+        ans *= a
+    return ans
+
+
+def eq(p1: Pokemon, p2: Pokemon):
+    if p1.x == p2.x and p1.y == p2.y and p1.type == p2.type and p1.value == p2.value and p1.catch == p2.catch:
+        return True
+    return False
+
+
+def inside(p: Pokemon, l_p: list):
+    for i in range(len(l_p)):
+        if eq(p, l_p[i]):
+            return i
+    return -1
+
+
 def scale(data, min_screen, max_screen, min_data, max_data):
     """
     get the scaled data with proportions min_data, max_data
@@ -54,7 +76,8 @@ class Student_code:
         print(self.pokemons)
         graph_json = self.client.get_graph()
         self.graph = get_graph(graph_json)
-        print(self.graph.Edges)
+        self.pok = []
+        self.list_pok = None
         self.list_pok = self.get_list_pokemon()
         self.paint_g = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         for node in self.paint_g.Nodes:
@@ -66,10 +89,6 @@ class Student_code:
         self.max_y = max(list(self.paint_g.Nodes), key=lambda n1: n1.pos.y).pos.y
         self.paths = dict()
         self.ag = None
-        print("9**: ", self.paint_g.Nodes[9].pos)
-        print("8**: ", self.paint_g.Nodes[8].pos)
-        print("9: ", self.graph.get_all_v()[9].x, ",", self.graph.get_all_v()[9].y)
-        print("8: ", self.graph.get_all_v()[8].x, ",", self.graph.get_all_v()[8].y)
         self.game()
 
     def game(self):
@@ -78,12 +97,9 @@ class Student_code:
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
         radius = 15
 
-        src = self.edge(self.list_pok[0])[0]
-        print("start:", src)
-        self.client.add_agent("{\"id\":" + str(src) + "}")
-        self.client.add_agent("{\"id\":1}")
-        self.client.add_agent("{\"id\":2}")
-        self.client.add_agent("{\"id\":3}")
+        for pok in self.list_pok:
+            src = self.edge(pok)[0]
+            self.client.add_agent("{\"id\":" + str(src) + "}")
         self.client.start()
         while self.client.is_running() == 'true':
             pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
@@ -112,14 +128,11 @@ class Student_code:
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
                 y = self.my_scale(n.pos.y, y=True)
-                # its just to get a nice antialiased circle
                 gfxdraw.filled_circle(self.screen, int(x), int(y), radius, Color(64, 80, 174))
                 gfxdraw.aacircle(self.screen, int(x), int(y), radius, Color(255, 255, 255))
-                # draw the node id
                 id_srf = FONT.render(str(n.id), True, Color(255, 255, 255))
                 rect = id_srf.get_rect(center=(x, y))
                 self.screen.blit(id_srf, rect)
-            # draw edges
             for e in self.paint_g.Edges:
                 # find the edge nodes
                 src = next(n for n in self.paint_g.Nodes if n.id == e.src)
@@ -129,17 +142,13 @@ class Student_code:
                 src_y = self.my_scale(src.pos.y, y=True)
                 dest_x = self.my_scale(dest.pos.x, x=True)
                 dest_y = self.my_scale(dest.pos.y, y=True)
-                # draw the line
                 pygame.draw.line(self.screen, Color(61, 72, 126), (src_x, src_y), (dest_x, dest_y))
-            # draw agents
             for agent in agents:
                 pygame.draw.circle(self.screen, Color(122, 61, 23),
                                    (int(agent.pos.x), int(agent.pos.y)), 10)
-            # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
             for p in pokemons:
                 pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
 
-            # update screen changes
             display.update()
 
             self.clock.tick(60)
@@ -147,14 +156,15 @@ class Student_code:
             self.client.move()
 
     def algo(self):
-        print("path1:", self.ag[0].path)
-        p = []
         for agent in self.ag.keys():
             m = sys.maxsize
             i = None
             p = []
             if not self.ag[agent].path:
                 for pok in self.list_pok:
+                    print("pok1:", pok)
+                    if pok.catch:
+                        continue
                     edge = self.edge(pok)
                     src = edge[0]
                     dest = edge[1]
@@ -170,23 +180,29 @@ class Student_code:
                 if i != -1 and p != []:
                     self.ag[agent].path = p
                     self.ag[agent].pok = i
+
         for i in self.ag.keys():
+            print("path1:", self.ag[0].path)
             if self.ag[i].path:
-                if self.ag[i].path.__len__ == 2:
-                    x = self.ag[i].path[0]
-                    y = self.ag[i].path[1]
-                    t = self.ag[i].pok.type
-                    if x < y and t < 0:
-                        self.ag[i].path.insert(2, x)
+                print("path2:", self.ag[0].path)
                 self.client.choose_next_edge(
                     '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
                 self.ag[i].src = self.ag[i].path[0]
                 if len(self.ag[i].path) > 1:
                     self.ag[i].dest = self.ag[i].path[1]
                     self.ag[i].path.remove(self.ag[i].path[0])
-                else:
+                elif len(self.ag[i].path) == 1:
                     self.ag[i].dest = -1
                     self.ag[i].path.remove(self.ag[i].path[0])
+                    temp = inside(self.ag[i].pok, self.list_pok)
+                    if temp != -1:
+                        self.pok.insert(temp, True)
+                    print("pok:", self.ag[i].pok)
+
+            else:
+                temp = inside(self.ag[i].pok, self.list_pok)
+                if temp != -1:
+                    self.pok.insert(temp, True)
 
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
@@ -198,10 +214,20 @@ class Student_code:
         pok = []
         pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
         pokemons = [p.Pokemon for p in pokemons]
+        if self.list_pok is None:
+            for p in pokemons:
+                x1, y1, _ = p.pos.split(',')
+                pos1 = (x1, y1)
+                t = Pokemon(p.type, p.value, pos1, self.graph)
+                pok.append(t)
+            return pok
         for p in pokemons:
             x1, y1, _ = p.pos.split(',')
             pos1 = (x1, y1)
             t = Pokemon(p.type, p.value, pos1, self.graph)
+            temp = inside(t, self.list_pok)
+            if self.pok != [] and temp != -1:  # make listpok to a list
+                t.catch = self.pok[temp]  # inside return a index
             pok.append(t)
         return pok
 
@@ -214,8 +240,9 @@ class Student_code:
             x, y, _ = a.pos.split(',')
             pos = (x, y)
             temp = Agents(a.id, a.value, a.src, a.dest, a.speed, pos, self.graph)
+            if self.ag != None:
+                temp.pok = self.ag[a.id].pok
             if self.paths != {}:
-                print(a.id)
                 temp.path = self.paths[a.id]
             ag[a.id] = temp
             a.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
@@ -273,14 +300,6 @@ def distance(pos1: tuple, pos2: tuple):
     yy = math_pow((pos1[1] - pos2[1]), 2)
     xy = xx + yy
     ans = math.sqrt(xy)
-    return ans
-
-
-def math_pow(a, b):
-    i = 0
-    ans = 0
-    while i < b:
-        ans *= a
     return ans
 
 

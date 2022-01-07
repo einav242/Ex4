@@ -16,7 +16,7 @@ class Agents:
         self.graph = graph
         self.moving = False
         self.path = []
-        self.pok=None
+        self.pok = None
 
     def shortest_dist(self, i: int) -> float:
         if self.dest != -1:

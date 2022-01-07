@@ -15,6 +15,7 @@ class Pokemon:
         self.x = float(pos[0])
         self.y = float(pos[1])
         self.graph = graph
+        self.catch = False
 
     def distance(self, i: int):
         x1 = self.graph.get_all_v()[i].x
@@ -42,3 +43,11 @@ class Pokemon:
         dest = self.closet_node(src)
         ans = (src, dest)
         return ans
+
+    def __str__(self):
+        return "type: " + str(self.type) + " value: " + str(self.value) + " pos:( " + str(self.x) + "," + \
+               str(self.y) + ")" + " catch: " + str(self.catch)
+
+    def __repr__(self):
+        return "type: " + str(self.type) + " value: " + str(self.value) + " pos:( " + str(self.x) + "," + \
+               str(self.y) + ")" + " catch: " + str(self.catch)

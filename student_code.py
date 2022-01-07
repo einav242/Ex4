@@ -127,21 +127,23 @@ class Student_code:
                 dest_y = self.my_scale(dest.pos.y, y=True)
                 pygame.draw.line(self.screen, Color(61, 72, 126), (src_x, src_y), (dest_x, dest_y))
             for agent in agents:
-                pygame.draw.circle(self.screen, Color(250, 5, 214),
-                                   (int(agent.pos.x), int(agent.pos.y)), 10)
+                a = pygame.image.load('player.png')
+                a_scale = pygame.transform.scale(a, (30, 30))
+                a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
+                self.screen.blit(a_scale, a_rect)
 
-            FONT3 = pygame.font.SysFont('Arial', 12, bold=True)
+            FONT3 = pygame.font.SysFont('Arial', 15, bold=True)
             for p in pokemons:
                 if p.type > 0:
-                    pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 15)
-                    value_srf = FONT3.render(str(p.value), True, Color(0, 0, 0))
-                    rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
-                    self.screen.blit(value_srf, rect3)
+                    pika = pygame.image.load('pikachu 2.png')
                 else:
-                    pygame.draw.circle(self.screen, Color(255, 0, 0), (int(p.pos.x), int(p.pos.y)), 15)
-                    value_srf = FONT3.render(str(p.value), True, Color(0, 0, 0))
-                    rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
-                    self.screen.blit(value_srf, rect3)
+                    pika = pygame.image.load('pikachu.png')
+                pika_scale = pygame.transform.scale(pika, (30, 30))
+                pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
+                self.screen.blit(pika_scale, pika_rect)
+                value_srf = FONT3.render(str(p.value), True, Color(255, 255, 255))
+                rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
+                self.screen.blit(value_srf, rect3)
 
             display.update()
 

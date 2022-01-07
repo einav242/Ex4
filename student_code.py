@@ -12,7 +12,7 @@ from Agents import Agents
 from Pokemon import Pokemon
 from api.DiGraph import DiGraph
 from api.GraphAlgo import GraphAlgo
-from Button import Button
+from Rect_text import Rect_text
 from client import Client
 import json
 from pygame import gfxdraw
@@ -50,12 +50,11 @@ class Student_code:
         self.paths = dict()
         self.ag = None
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
-        self.stop_button = Button('stop', 75, 35, (25, 25), self.screen, FONT)
         self.game()
 
-    def check_click(self):
+    def check_click(self, stop_button):
         mouse_pos = pygame.mouse.get_pos()
-        if self.stop_button.top_rect.collidepoint(mouse_pos):
+        if stop_button.top_rect.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0]:
                 self.client.stop()
 
@@ -89,9 +88,21 @@ class Student_code:
                     exit(0)
 
             self.screen.fill(Color(255, 255, 255))
-            pygame.draw.rect(self.screen, self.stop_button.top_color, self.stop_button.top_rect)
-            self.screen.blit(self.stop_button.text_surf, self.stop_button.text_rect)
-            self.check_click()
+            stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
+            r = pygame.Rect((25, 25), (85, 45))
+            pygame.draw.rect(self.screen, (157, 157, 157), r)
+            pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
+            self.screen.blit(stop_button.text_surf, stop_button.text_rect)
+            FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
+            grade = 'grade=' + str(self.get_grade())
+            g_srf = FONT2.render(grade, True, Color(0, 0, 0))
+            rect_srf = g_srf.get_rect(center=(930, 630))
+            self.screen.blit(g_srf, rect_srf)
+            ttl = ' ttl=' + self.client.time_to_end()
+            ttl_srf = FONT2.render(ttl, True, Color(0, 0, 0))
+            rect2_srf = ttl_srf.get_rect(center=(930, 675))
+            self.screen.blit(ttl_srf, rect2_srf)
+            self.check_click(stop_button)
             # draw nodes
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
@@ -112,11 +123,19 @@ class Student_code:
             for agent in agents:
                 pygame.draw.circle(self.screen, Color(250, 5, 214),
                                    (int(agent.pos.x), int(agent.pos.y)), 10)
+
+            FONT3 = pygame.font.SysFont('Arial', 12, bold=True)
             for p in pokemons:
                 if p.type > 0:
-                    pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+                    pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 15)
+                    value_srf = FONT3.render(str(p.value), True, Color(0, 0, 0))
+                    rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
+                    self.screen.blit(value_srf, rect3)
                 else:
-                    pygame.draw.circle(self.screen, Color(255, 0, 0), (int(p.pos.x), int(p.pos.y)), 10)
+                    pygame.draw.circle(self.screen, Color(255, 0, 0), (int(p.pos.x), int(p.pos.y)), 15)
+                    value_srf = FONT3.render(str(p.value), True, Color(0, 0, 0))
+                    rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
+                    self.screen.blit(value_srf, rect3)
 
             display.update()
 
@@ -169,7 +188,7 @@ class Student_code:
             self.paths[i] = self.ag[i].path
 
         ttl = self.client.time_to_end()
-        # print(ttl, self.client.get_info())
+        print(ttl, self.client.get_info())
 
     def get_list_pokemon(self):
         pok = []
@@ -228,6 +247,11 @@ class Student_code:
                     if (pok.type < 0 and s > dest) or (pok.type > 0 and s < dest):
                         ans = (s, dest)
                         return ans
+
+    def get_grade(self):
+        info_json = self.client.get_info()
+        info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+        return info.GameServer.grade
 
 
 def get_graph(graph_json):

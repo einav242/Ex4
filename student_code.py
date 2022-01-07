@@ -27,7 +27,7 @@ class Student_code:
         self.PORT = 6666
         self.HOST = '127.0.0.1'
         pygame.init()
-        self.screen = display.set_mode((self.WIDTH, self.HEIGHT), depth=32, flags=RESIZABLE)
+        self.screen = display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
         pygame.font.init()
         self.client = Client()
@@ -87,7 +87,13 @@ class Student_code:
                     pygame.quit()
                     exit(0)
 
-            self.screen.fill(Color(255, 255, 255))
+            self.screen.fill(0)
+
+            background = pygame.image.load('background.jpg')
+            change_scale = pygame.transform.scale(background, (1080, 720))
+            background_rect = background.get_rect(topleft=(0, 0))
+            self.screen.blit(change_scale, background_rect)
+
             stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
             r = pygame.Rect((25, 25), (85, 45))
             pygame.draw.rect(self.screen, (157, 157, 157), r)
@@ -95,11 +101,11 @@ class Student_code:
             self.screen.blit(stop_button.text_surf, stop_button.text_rect)
             FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
             grade = 'grade=' + str(self.get_grade())
-            g_srf = FONT2.render(grade, True, Color(0, 0, 0))
+            g_srf = FONT2.render(grade, True, Color(255, 255, 255))
             rect_srf = g_srf.get_rect(center=(930, 630))
             self.screen.blit(g_srf, rect_srf)
-            ttl = ' ttl=' + self.client.time_to_end()
-            ttl_srf = FONT2.render(ttl, True, Color(0, 0, 0))
+            ttl = ' ttl=' + str(self.client.time_to_end())
+            ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
             rect2_srf = ttl_srf.get_rect(center=(930, 675))
             self.screen.blit(ttl_srf, rect2_srf)
             self.check_click(stop_button)

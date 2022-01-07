@@ -61,6 +61,7 @@ class Student_code:
     def game(self):
         pygame.font.init()
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
+        FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
         radius = 15
         for pok in self.list_pok:
             src = self.edge(pok)[0]
@@ -89,7 +90,7 @@ class Student_code:
 
             self.screen.fill(0)
 
-            background = pygame.image.load('background.jpg')
+            background = pygame.image.load('imags/background.jpg')
             change_scale = pygame.transform.scale(background, (1080, 720))
             background_rect = background.get_rect(topleft=(0, 0))
             self.screen.blit(change_scale, background_rect)
@@ -99,25 +100,32 @@ class Student_code:
             pygame.draw.rect(self.screen, (157, 157, 157), r)
             pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
             self.screen.blit(stop_button.text_surf, stop_button.text_rect)
-            FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
+
             grade = 'grade=' + str(self.get_grade())
             g_srf = FONT2.render(grade, True, Color(255, 255, 255))
             rect_srf = g_srf.get_rect(center=(930, 630))
             self.screen.blit(g_srf, rect_srf)
-            ttl = ' ttl=' + str(self.client.time_to_end())
+
+            ttl = 'ttl=' + str(self.client.time_to_end())
             ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
             rect2_srf = ttl_srf.get_rect(center=(930, 675))
             self.screen.blit(ttl_srf, rect2_srf)
+
+            level = 'level=' + str(self.get_level())
+            level_srf = FONT2.render(level, True, Color(255, 255, 255))
+            rect4_srf = level_srf.get_rect(center=(990, 50))
+            self.screen.blit(level_srf, rect4_srf)
             self.check_click(stop_button)
-            # draw nodes
+
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
                 y = self.my_scale(n.pos.y, y=True)
                 gfxdraw.filled_circle(self.screen, int(x), int(y), radius, Color(64, 80, 174))
                 gfxdraw.aacircle(self.screen, int(x), int(y), radius, Color(255, 255, 255))
-                id_srf = FONT.render(str(n.id), True, Color(255, 255, 255))
-                rect = id_srf.get_rect(center=(x, y))
-                self.screen.blit(id_srf, rect)
+                id_srf = FONT.render(str(n.id), True, Color(0, 0, 0))
+                rect3_srf = id_srf.get_rect(center=(x, y))
+                self.screen.blit(id_srf, rect3_srf)
+
             for e in self.paint_g.Edges:
                 src = next(n for n in self.paint_g.Nodes if n.id == e.src)
                 dest = next(n for n in self.paint_g.Nodes if n.id == e.dest)
@@ -125,9 +133,10 @@ class Student_code:
                 src_y = self.my_scale(src.pos.y, y=True)
                 dest_x = self.my_scale(dest.pos.x, x=True)
                 dest_y = self.my_scale(dest.pos.y, y=True)
-                pygame.draw.line(self.screen, Color(61, 72, 126), (src_x, src_y), (dest_x, dest_y))
+                pygame.draw.line(self.screen, Color(255,255,255), (src_x, src_y), (dest_x, dest_y))
+
             for agent in agents:
-                a = pygame.image.load('player.png')
+                a = pygame.image.load('imags/player.png')
                 a_scale = pygame.transform.scale(a, (30, 30))
                 a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
                 self.screen.blit(a_scale, a_rect)
@@ -135,9 +144,9 @@ class Student_code:
             FONT3 = pygame.font.SysFont('Arial', 15, bold=True)
             for p in pokemons:
                 if p.type > 0:
-                    pika = pygame.image.load('pikachu 2.png')
+                    pika = pygame.image.load('imags/pikachu 2.png')
                 else:
-                    pika = pygame.image.load('pikachu.png')
+                    pika = pygame.image.load('imags/pikachu.png')
                 pika_scale = pygame.transform.scale(pika, (30, 30))
                 pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
                 self.screen.blit(pika_scale, pika_rect)
@@ -260,6 +269,12 @@ class Student_code:
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.grade
+
+    def get_level(self):
+        info_json = self.client.get_info()
+        info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+        return info.GameServer.game_level
+
 
 
 def get_graph(graph_json):

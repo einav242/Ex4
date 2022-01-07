@@ -103,12 +103,12 @@ class Student_code:
 
             grade = 'grade=' + str(self.get_grade())
             g_srf = FONT2.render(grade, True, Color(255, 255, 255))
-            rect_srf = g_srf.get_rect(center=(930, 630))
+            rect_srf = g_srf.get_rect(center=(920, 630))
             self.screen.blit(g_srf, rect_srf)
 
             ttl = 'ttl=' + str(self.client.time_to_end())
             ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
-            rect2_srf = ttl_srf.get_rect(center=(930, 675))
+            rect2_srf = ttl_srf.get_rect(center=(920, 675))
             self.screen.blit(ttl_srf, rect2_srf)
 
             level = 'level=' + str(self.get_level())

@@ -12,53 +12,12 @@ from Agents import Agents
 from Pokemon import Pokemon
 from api.DiGraph import DiGraph
 from api.GraphAlgo import GraphAlgo
+from Button import Button
 from client import Client
 import json
 from pygame import gfxdraw
 import pygame
 from pygame import *
-
-
-# init pygame
-def get_graph(graph_json):
-    graph = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
-    g = DiGraph()
-    for node in graph.Nodes:
-        x1, y1, _ = node.pos.split(',')
-        node.pos = (float(x1), float(y1), 0)
-        g.add_node(node.id, node.pos)
-    for edge in graph.Edges:
-        g.add_edge(edge.src, edge.dest, edge.w)
-    return g
-
-
-def math_pow(a, b):
-    i = 0
-    ans = 0
-    while i < b:
-        ans *= a
-    return ans
-
-
-def eq(p1: Pokemon, p2: Pokemon):
-    if p1.x == p2.x and p1.y == p2.y and p1.type == p2.type and p1.value == p2.value and p1.catch == p2.catch:
-        return True
-    return False
-
-
-def inside(p: Pokemon, l_p: list):
-    for i in range(len(l_p)):
-        if eq(p, l_p[i]):
-            return i
-    return -1
-
-
-def scale(data, min_screen, max_screen, min_data, max_data):
-    """
-    get the scaled data with proportions min_data, max_data
-    relative to min and max screen dimentions
-    """
-    return ((data - min_data) / (max_data - min_data)) * (max_screen - min_screen) + min_screen
 
 
 class Student_code:
@@ -90,14 +49,20 @@ class Student_code:
         self.max_y = max(list(self.paint_g.Nodes), key=lambda n1: n1.pos.y).pos.y
         self.paths = dict()
         self.ag = None
+        FONT = pygame.font.SysFont('Arial', 20, bold=True)
+        self.stop_button = Button('stop', 75, 35, (25, 25), self.screen, FONT)
         self.game()
+
+    def check_click(self):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.stop_button.top_rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0]:
+                self.client.stop()
 
     def game(self):
         pygame.font.init()
-        print(self.pokemons)
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
         radius = 15
-
         for pok in self.list_pok:
             src = self.edge(pok)[0]
             self.client.add_agent("{\"id\":" + str(src) + "}")
@@ -123,8 +88,10 @@ class Student_code:
                     pygame.quit()
                     exit(0)
 
-            self.screen.fill(Color(0, 0, 0))
-
+            self.screen.fill(Color(255, 255, 255))
+            pygame.draw.rect(self.screen, self.stop_button.top_color, self.stop_button.top_rect)
+            self.screen.blit(self.stop_button.text_surf, self.stop_button.text_rect)
+            self.check_click()
             # draw nodes
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
@@ -135,27 +102,27 @@ class Student_code:
                 rect = id_srf.get_rect(center=(x, y))
                 self.screen.blit(id_srf, rect)
             for e in self.paint_g.Edges:
-                # find the edge nodes
                 src = next(n for n in self.paint_g.Nodes if n.id == e.src)
                 dest = next(n for n in self.paint_g.Nodes if n.id == e.dest)
-                # scaled positions
                 src_x = self.my_scale(src.pos.x, x=True)
                 src_y = self.my_scale(src.pos.y, y=True)
                 dest_x = self.my_scale(dest.pos.x, x=True)
                 dest_y = self.my_scale(dest.pos.y, y=True)
                 pygame.draw.line(self.screen, Color(61, 72, 126), (src_x, src_y), (dest_x, dest_y))
             for agent in agents:
-                pygame.draw.circle(self.screen, Color(122, 61, 23),
+                pygame.draw.circle(self.screen, Color(250, 5, 214),
                                    (int(agent.pos.x), int(agent.pos.y)), 10)
             for p in pokemons:
-                pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+                if p.type > 0:
+                    pygame.draw.circle(self.screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+                else:
+                    pygame.draw.circle(self.screen, Color(255, 0, 0), (int(p.pos.x), int(p.pos.y)), 10)
 
             display.update()
 
             self.clock.tick(10)
             self.algo()
             self.client.move()
-            # time.sleep()
 
     def algo(self):
         for agent in self.ag.keys():
@@ -164,9 +131,6 @@ class Student_code:
             p = []
             if not self.ag[agent].path:
                 for pok in self.list_pok:
-                    print("pok1:", pok)
-                    if pok.catch:
-                        continue
                     edge = self.edge(pok)
                     src = edge[0]
                     dest = edge[1]
@@ -184,9 +148,9 @@ class Student_code:
                     self.ag[agent].pok = i
 
         for i in self.ag.keys():
-            print("path1:", self.ag[0].path)
+            # print("path1:", self.ag[0].path)
             if self.ag[i].path:
-                print("path2:", self.ag[0].path)
+                # print("path2:", self.ag[0].path)
                 self.client.choose_next_edge(
                     '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
                 self.ag[i].src = self.ag[i].path[0]
@@ -199,38 +163,24 @@ class Student_code:
                     temp = inside(self.ag[i].pok, self.list_pok)
                     if temp != -1:
                         self.pok.insert(temp, True)
-                    print("pok:", self.ag[i].pok)
-
-            else:
-                temp = inside(self.ag[i].pok, self.list_pok)
-                if temp != -1:
-                    self.pok.insert(temp, True)
+                # print("pok:", self.ag[i].pok)
 
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
 
         ttl = self.client.time_to_end()
-        print(ttl, self.client.get_info())
+        # print(ttl, self.client.get_info())
 
     def get_list_pokemon(self):
         pok = []
         pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
         pokemons = [p.Pokemon for p in pokemons]
-        if self.list_pok is None:
-            for p in pokemons:
-                x1, y1, _ = p.pos.split(',')
-                pos1 = (x1, y1)
-                t = Pokemon(p.type, p.value, pos1, self.graph)
-                pok.append(t)
-            return pok
         for p in pokemons:
             x1, y1, _ = p.pos.split(',')
             pos1 = (x1, y1)
             t = Pokemon(p.type, p.value, pos1, self.graph)
-            temp = inside(t, self.list_pok)
-            if self.pok != [] and temp != -1:  # make listpok to a list
-                t.catch = self.pok[temp]  # inside return a index
             pok.append(t)
+        return pok
         return pok
 
     def get_list_agents(self):
@@ -280,6 +230,47 @@ class Student_code:
                         return ans
 
 
+def get_graph(graph_json):
+    graph = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+    g = DiGraph()
+    for node in graph.Nodes:
+        x1, y1, _ = node.pos.split(',')
+        node.pos = (float(x1), float(y1), 0)
+        g.add_node(node.id, node.pos)
+    for edge in graph.Edges:
+        g.add_edge(edge.src, edge.dest, edge.w)
+    return g
+
+
+def math_pow(a, b):
+    i = 0
+    ans = 0
+    while i < b:
+        ans *= a
+    return ans
+
+
+def eq(p1: Pokemon, p2: Pokemon):
+    if p1.x == p2.x and p1.y == p2.y and p1.type == p2.type and p1.value == p2.value and p1.catch == p2.catch:
+        return True
+    return False
+
+
+def inside(p: Pokemon, l_p: list):
+    for i in range(len(l_p)):
+        if eq(p, l_p[i]):
+            return i
+    return -1
+
+
+def scale(data, min_screen, max_screen, min_data, max_data):
+    """
+    get the scaled data with proportions min_data, max_data
+    relative to min and max screen dimentions
+    """
+    return ((data - min_data) / (max_data - min_data)) * (max_screen - min_screen) + min_screen
+
+
 def line(pos1: tuple, pos2: tuple, pok: Pokemon):
     pos3 = (pok.x, pok.y)
     m = (pos1[1] - pos2[1]) / (pos1[0] - pos2[0])
@@ -287,14 +278,6 @@ def line(pos1: tuple, pos2: tuple, pok: Pokemon):
     ans = m * pos3[0] + n
     if 0.000001 > pos3[1] - ans > -0.000001:
         return True
-    # pos3 = (pok.x, pok.y)
-    # d1_3 = distance(pos1, pos3)
-    # d2_3 = distance(pos2, pos3)
-    # d1_2 = distance(pos1, pos2)
-    # ans1 = d1_3 + d2_3
-    # ans2 = d1_2
-    # if 0.0001 > ans1 - ans2 > -0.0001:
-    #     return True
 
 
 def distance(pos1: tuple, pos2: tuple):

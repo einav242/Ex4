@@ -4,6 +4,7 @@ OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
 import sys
+import time
 from asyncio import wait
 from types import SimpleNamespace
 
@@ -151,9 +152,10 @@ class Student_code:
 
             display.update()
 
-            self.clock.tick(60)
+            self.clock.tick(10)
             self.algo()
             self.client.move()
+            # time.sleep()
 
     def algo(self):
         for agent in self.ag.keys():

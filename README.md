@@ -27,6 +27,12 @@ After activating the server using this line, put the following line in the secon
 
  and press enter now the game is running, enjoy
 
+### Example of Case 11: 
+As you can see in the game, we can see the Pokemon on the game board and the agents who are aiming to catch Pokemon. 
+On the bottom right we can see the time left for the end of the game and the scoring.
+And a stop button if you want to stop the game in the middle. 
+
+<img width="809" alt="Capture" src="https://user-images.githubusercontent.com/93201414/148661054-e71bb830-b930-47e6-81e8-ef6865ee0e67.PNG">
 
 
 ### Thr Result:
@@ -49,15 +55,4 @@ After activating the server using this line, put the following line in the secon
 | 13 | 204 | 596 |
 | 14 | 173 | 289 |
 | 15 | 269 | 585 |
-
-
-### Example of Case 11: 
-As you can see in the game, we can see the Pokemon on the game board and the agents who are aiming to catch Pokemon. 
-On the bottom right we can see the time left for the end of the game and the scoring.
-And a stop button if you want to stop the game in the middle. 
-
-<img width="809" alt="Capture" src="https://user-images.githubusercontent.com/93201414/148661054-e71bb830-b930-47e6-81e8-ef6865ee0e67.PNG">
-
-
-
 

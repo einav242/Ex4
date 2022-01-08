@@ -1,8 +1,3 @@
-"""
-@author AchiyaZigi
-OOP - Ex4
-Very simple GUI example for python client to communicates with the server and "play the game!"
-"""
 import sys
 import time
 from asyncio import wait
@@ -21,15 +16,18 @@ from pygame import *
 
 
 class Student_code:
-    def __init__(self):
+    def __init__(self,cod=None):
         self.WIDTH = 1080
         self.HEIGHT = 720
         self.PORT = 6666
         self.HOST = '127.0.0.1'
-        pygame.init()
-        self.screen = display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
+        if cod is None:
+            pygame.init()
+        if cod is None:
+            self.screen = display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
-        pygame.font.init()
+        if cod is None:
+            pygame.font.init()
         self.client = Client()
         self.client.start_connection(self.HOST, self.PORT)
         self.pokemons = self.client.get_pokemons()
@@ -53,7 +51,8 @@ class Student_code:
         self.flag = 0
         self.last = dict()
         self.dead_pok = []
-        self.game()
+        if cod is None:
+            self.game()
 
     def game(self):  # this function start the game
         pygame.font.init()
@@ -256,7 +255,6 @@ class Student_code:
     # check of we click on the close button
     def check_click(self, stop_button):
         mouse_pos = pygame.mouse.get_pos()
-        ttl = int(self.client.time_to_end())
         if stop_button.top_rect.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0]:
                 self.client.stop()
@@ -399,14 +397,3 @@ def distance(pos1: tuple, pos2: tuple):
 
 if __name__ == '__main__':
     s = Student_code()
-
-"""
-The code below should be improved significantly:
-The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.
-"""
-
-#
-# def the_closet(agents:list,pokemon:Pokemon):
-#     for i in range(agents):
-
-# game over:

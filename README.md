@@ -35,6 +35,11 @@ And a stop button if you want to stop the game in the middle.
 
 <img width="809" alt="Capture" src="https://user-images.githubusercontent.com/93201414/148661054-e71bb830-b930-47e6-81e8-ef6865ee0e67.PNG">
 
+### How to run tests:
+If you want to test the code and run tests you will need to open two CMDs.
+In the first CMD write the following line: java -jar Ex4_Server_v0.0.jar 0 to start the server.
+In the second CMD write the following line: Python3 test_student_code.py
+If it runs without errors a sign that the test has passed successfully
 
 ### Thr Result:
 

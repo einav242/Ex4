@@ -50,6 +50,9 @@ class Student_code:
         self.paths = dict()
         self.ag = None
         self.agents = None
+        self.flag = 0
+        self.last = dict()
+        self.dead_pok = []
         self.game()
 
     def game(self):  # this function start the game
@@ -115,8 +118,6 @@ class Student_code:
 
             # put a stop button
             stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
-            r = pygame.Rect((25, 25), (85, 45))
-            pygame.draw.rect(self.screen, (157, 157, 157), r)
             pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
             self.screen.blit(stop_button.text_surf, stop_button.text_rect)
 
@@ -133,7 +134,7 @@ class Student_code:
 
             level = 'level=' + str(self.get_level())
             level_srf = FONT3.render(level, True, Color(255, 0, 0))
-            rect5_srf = level_srf.get_rect(center=(self.screen.get_width() / 2, 50))
+            rect5_srf = level_srf.get_rect(center=(self.screen.get_width() / 2, 40))
             self.screen.blit(level_srf, rect5_srf)
 
             # paint the nodes
@@ -179,16 +180,24 @@ class Student_code:
                 self.screen.blit(value_srf, rect3)
 
             self.algo()
-            self.client.move()
+            if self.flag != -1:
+                self.client.move()
 
     def algo(self):
         for agent in self.ag.keys():  # over all the agent and allocated to any of them a pokemon
             m = sys.maxsize
             i = None
             p = []
-            if not self.ag[agent].path:  # enter to the loop only of this agent dont have a pokemon to catch
+            # enter to the loop only of this agent dont have a pokemon to catch
+            if not self.ag[agent].path or self.flag == -1:
                 # over all the pokemon and allocated the pokemon that most closes to the agent
                 for pok in self.list_pok:
+                    if self.dead_pok != [] and inside(pok, self.dead_pok) != -1:
+                        continue
+                    if self.flag == -1:
+                        if eq(self.ag[agent].pok, pok):
+                            self.dead_pok.append(pok)
+                            continue
                     edge = self.edge(pok)
                     src = edge[0]
                     dest = edge[1]
@@ -207,18 +216,31 @@ class Student_code:
 
         for i in self.ag.keys():  # over all the agents to choose they next edges
             if self.ag[i].path:
-                self.client.choose_next_edge(
-                    '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
-                self.ag[i].src = self.ag[i].path[0]
-                if len(self.ag[i].path) > 1:
-                    self.ag[i].dest = self.ag[i].path[1]
-                    self.ag[i].path.remove(self.ag[i].path[0])
-                elif len(self.ag[i].path) == 1:
-                    self.ag[i].dest = -1
-                    self.ag[i].path.remove(self.ag[i].path[0])
+                if len(self.ag[i].path) > 1 and self.ag[i].last_edges is not None:
+                    if self.ag[i].last_edges[0] == self.ag[i].path[1] and self.ag[i].last_edges[1] == \
+                            self.ag[i].path[0]:
+                        self.ag[i].count += 1
+                    else:
+                        self.ag[i].count = 0
+                if self.ag[i].count < 9:
+                    self.flag = 0
+                    self.client.choose_next_edge(
+                        '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
+                    self.ag[i].src = self.ag[i].path[0]
+                    if len(self.ag[i].path) > 1:
+                        self.ag[i].dest = self.ag[i].path[1]
+                        self.ag[i].last_edges = (self.ag[i].path[0], self.ag[i].path[1])
+                        self.ag[i].path.remove(self.ag[i].path[0])
+                    elif len(self.ag[i].path) == 1:
+                        self.ag[i].dest = -1
+                        self.ag[i].path.remove(self.ag[i].path[0])
+                        self.ag[i].last_edges = None
+                else:
+                    self.flag = -1
 
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
+            self.last[i] = (self.ag[i].last_edges, self.ag[i].count)
 
         ttl = self.client.time_to_end()
         print(ttl, self.client.get_info())
@@ -258,6 +280,9 @@ class Student_code:
                 temp.pok = self.ag[a.id].pok
             if self.paths != {}:
                 temp.path = self.paths[a.id]
+            if self.last != {}:
+                temp.last_edges = self.last[a.id][0]
+                temp.count = self.last[a.id][1]
             ag[a.id] = temp
             a.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
         return ag

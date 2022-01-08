@@ -16,12 +16,6 @@ class Agents:
         self.graph = graph
         self.moving = False
         self.path = []
-        self.pok = None
-
-    def shortest_dist(self, i: int) -> float:
-        if self.dest != -1:
-            graphAlgo = GraphAlgo(self.graph)
-            dist = graphAlgo.shortest_path(self.src, i)[0]
-            return dist
-        else:
-            return sys.maxsize
+        self.pok = None  # to this pokemon the agent go
+        self.last_edges=None
+        self.count=0

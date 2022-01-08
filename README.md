@@ -19,6 +19,14 @@ Considered by the shortpath function the shortest route so that the agent can ca
 
 ### How to Run The Game: 
 To run our project you must open 2 CMD windows simultaneously from within the project 
+First open two CMDs in one of them write the following line:
+`java -jar Ex4_Server_v0.0.jar 0` so that instead of 0 you can put any step in the range 0-15
+
+After activating the server using this line, put the following line in the second CMD:
+`Python3 ex4.py`
+
+ and press enter now the game is running, enjoy
+
 
 
 ### Thr Result:

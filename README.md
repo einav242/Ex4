@@ -19,29 +19,13 @@ Considered by the shortpath function the shortest route so that the agent can ca
 
 ### How to Run The Game: 
 To run our project you must open 2 CMD windows simultaneously from within the project 
+First open two CMDs in one of them write the following line:
+`java -jar Ex4_Server_v0.0.jar 0` so that instead of 0 you can put any step in the range 0-15
 
+After activating the server using this line, put the following line in the second CMD:
+`Python3 ex4.py`
 
-### Thr Result:
-
-| Case | Grade | Move | 
-| ------- | ------- | ------- | 
-| 0 |  |  |
-| 1 | |  |
-| 2 |  |  |
-| 3 |  |  |
-| 4 |  |  |
-| 5 |  |  |
-| 6 |   |  |
-| 7 |  |  |
-| 8 |  |  |
-| 9 |   |  |
-| 10 |   |  |
-| 11 |   |  |
-| 12 |   |  |
-| 13 |  |  |
-| 14 |   |  |
-| 15 |  |  |
-
+ and press enter now the game is running, enjoy
 
 ### Example of Case 11: 
 As you can see in the game, we can see the Pokemon on the game board and the agents who are aiming to catch Pokemon. 
@@ -51,5 +35,24 @@ And a stop button if you want to stop the game in the middle.
 <img width="809" alt="Capture" src="https://user-images.githubusercontent.com/93201414/148661054-e71bb830-b930-47e6-81e8-ef6865ee0e67.PNG">
 
 
+### Thr Result:
 
+| Case | Grade | Move | 
+| ------- | ------- | ------- | 
+| 0 | 100 | 298 |
+| 1 | 327 | 596 |
+| 2 | 207 | 298 |
+| 3 | 611 | 596 |
+| 4 | 249 | 298 |
+| 5 | 488 | 596 |
+| 6 | 79 | 298 |
+| 7 | 269 | 596 |
+| 8 | 100 | 298 |
+| 9 | 294 | 596 |
+| 10 | 140 | 298 |
+| 11 | 628 | 495 |
+| 12 | 40 | 298 |
+| 13 | 204 | 596 |
+| 14 | 173 | 289 |
+| 15 | 269 | 585 |
 

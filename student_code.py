@@ -50,32 +50,26 @@ class Student_code:
         self.paths = dict()
         self.ag = None
         self.agents = None
-        FONT = pygame.font.SysFont('Arial', 20, bold=True)
         self.game()
 
-    def check_click(self, stop_button):
-        mouse_pos = pygame.mouse.get_pos()
-        if stop_button.top_rect.collidepoint(mouse_pos):
-            if pygame.mouse.get_pressed()[0]:
-                self.client.stop()
-                pygame.quit()
-                exit(0)
-
-    def game(self):
+    def game(self):  # this function start the game
         pygame.font.init()
-        FONT = pygame.font.SysFont('Arial', 20, bold=True)
-        FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
+        FONT = pygame.font.SysFont('Arial', 20, bold=True)  # to write the node
+        FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)  # to write the grade and ttl
+        FONT3 = pygame.font.SysFont('comicsansms', 35, bold=True)  # to write the level
+        FONT4 = pygame.font.SysFont('Arial', 15, bold=True)  # to write the value pf the pokemon
+
         radius = 15
         num = self.get_number_of_agents()
         c = 0
-        while c < num:
+        while c < num:  # we choose where to put the agent in the start of the game
             max_value = -sys.maxsize
             temp_pok = None
             for pok in self.list_pok:
                 if pok.catch:
                     continue
                 v = pok.value
-                if v > max_value:
+                if v > max_value:  # we put them next to the pokemon with maximum value
                     max_value = v
                     temp_pok = pok
             if temp_pok is not None:
@@ -84,11 +78,12 @@ class Student_code:
                 self.client.add_agent("{\"id\":" + str(src) + "}")
             c += 1
 
-        self.client.start()
+        self.client.start()  # start the game
         while self.client.is_running() == 'true':
             display.update()
-
             self.clock.tick(10)
+
+            # load all the pokemon
             pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
             pokemons = [p.Pokemon for p in pokemons]
             self.list_pok = self.get_list_pokemon()
@@ -96,33 +91,36 @@ class Student_code:
                 x, y, _ = p.pos.split(',')
                 p.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
 
-            self.agents = json.loads(self.client.get_agents(),
-                                     object_hook=lambda d: SimpleNamespace(**d)).Agents
+            # load all the agent
+            self.agents = json.loads(self.client.get_agents(), object_hook=lambda d: SimpleNamespace(**d)).Agents
             self.agents = [agent.Agent for agent in self.agents]
             for a in self.agents:
                 x, y, _ = a.pos.split(',')
                 a.pos = SimpleNamespace(x=self.my_scale(
                     float(x), x=True), y=self.my_scale(float(y), y=True))
             self.ag = self.get_list_agents()
+
+            # check event
             for eve in pygame.event.get():
                 if eve.type == pygame.QUIT:
                     self.client.stop_connection()
                     pygame.quit()
                     exit(0)
 
-            self.screen.fill(0)
-
+            # put a image to be background
             background = pygame.image.load('imags/background.jpg')
             change_scale = pygame.transform.scale(background, (self.screen.get_width(), self.screen.get_height()))
             background_rect = background.get_rect(topleft=(0, 0))
             self.screen.blit(change_scale, background_rect)
 
+            # put a stop button
             stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
             r = pygame.Rect((25, 25), (85, 45))
             pygame.draw.rect(self.screen, (157, 157, 157), r)
             pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
             self.screen.blit(stop_button.text_surf, stop_button.text_rect)
 
+            # write on the screen the grade,ttl and the level
             grade = 'grade=' + str(self.get_grade())
             g_srf = FONT2.render(grade, True, Color(255, 255, 255))
             rect_srf = g_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 90))
@@ -133,17 +131,12 @@ class Student_code:
             rect2_srf = ttl_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 45))
             self.screen.blit(ttl_srf, rect2_srf)
 
-            level = 'move=' + str(self.get_move())
-            level_srf = FONT2.render(level, True, Color(255, 255, 255))
-            rect4_srf = level_srf.get_rect(center=(self.screen.get_width() - 300, self.screen.get_height() - 45))
-            self.screen.blit(level_srf, rect4_srf)
-            self.check_click(stop_button)
+            level = 'level=' + str(self.get_level())
+            level_srf = FONT3.render(level, True, Color(255, 0, 0))
+            rect5_srf = level_srf.get_rect(center=(self.screen.get_width() / 2, 50))
+            self.screen.blit(level_srf, rect5_srf)
 
-            move = 'level=' + str(self.get_level())
-            move_srf = FONT2.render(move, True, Color(255, 255, 255))
-            rect5_srf = move_srf.get_rect(center=(self.screen.get_width() / 2, 50))
-            self.screen.blit(move_srf, rect5_srf)
-
+            # paint the nodes
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
                 y = self.my_scale(n.pos.y, y=True)
@@ -153,6 +146,7 @@ class Student_code:
                 rect3_srf = id_srf.get_rect(center=(x, y))
                 self.screen.blit(id_srf, rect3_srf)
 
+            # paint the edges
             for e in self.paint_g.Edges:
                 src = next(n for n in self.paint_g.Nodes if n.id == e.src)
                 dest = next(n for n in self.paint_g.Nodes if n.id == e.dest)
@@ -162,14 +156,16 @@ class Student_code:
                 dest_y = self.my_scale(dest.pos.y, y=True)
                 pygame.draw.line(self.screen, Color(255, 255, 255), (src_x, src_y), (dest_x, dest_y))
 
+            # paint the agents
             for agent in self.agents:
                 a = pygame.image.load('imags/player.png')
                 a_scale = pygame.transform.scale(a, (30, 30))
                 a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
                 self.screen.blit(a_scale, a_rect)
 
-            FONT3 = pygame.font.SysFont('Arial', 15, bold=True)
+            # paint the Pokemon's
             for p in pokemons:
+                # any type have different shape
                 if p.type > 0:
                     pika = pygame.image.load('imags/pikachu 2.png')
                 else:
@@ -178,7 +174,7 @@ class Student_code:
                 pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
                 self.screen.blit(pika_scale, pika_rect)
                 s_p = str(p.value)
-                value_srf = FONT3.render(s_p, True, Color(255, 255, 255))
+                value_srf = FONT4.render(s_p, True, Color(255, 255, 255))
                 rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
                 self.screen.blit(value_srf, rect3)
 
@@ -186,21 +182,22 @@ class Student_code:
             self.client.move()
 
     def algo(self):
-        for agent in self.ag.keys():
+        for agent in self.ag.keys():  # over all the agent and allocated to any of them a pokemon
             m = sys.maxsize
             i = None
             p = []
-            if not self.ag[agent].path:
+            if not self.ag[agent].path:  # enter to the loop only of this agent dont have a pokemon to catch
+                # over all the pokemon and allocated the pokemon that most closes to the agent
                 for pok in self.list_pok:
                     edge = self.edge(pok)
                     src = edge[0]
                     dest = edge[1]
                     graphAlgo = GraphAlgo(self.graph)
-                    ans = graphAlgo.shortest_path(self.ag[agent].src, src)
+                    ans = graphAlgo.shortest_path(self.ag[agent].src, src)  # use the function shortest path
                     dist = ans[0] + self.graph.Edges[src][dest]
                     path = ans[1]
                     path.append(dest)
-                    if dist < m:
+                    if dist < m:  # take the minimum distance
                         m = dist
                         i = pok
                         p = path
@@ -208,14 +205,10 @@ class Student_code:
                     self.ag[agent].path = p
                     self.ag[agent].pok = i
 
-        for i in self.ag.keys():
-           # print("path1:", self.ag[0].path)
+        for i in self.ag.keys():  # over all the agents to choose they next edges
             if self.ag[i].path:
                 self.client.choose_next_edge(
                     '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
-                # print('{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
-                # print(self.ag[i].pok)
-                # print(self.edge(self.ag[i].pok))
                 self.ag[i].src = self.ag[i].path[0]
                 if len(self.ag[i].path) > 1:
                     self.ag[i].dest = self.ag[i].path[1]
@@ -223,10 +216,6 @@ class Student_code:
                 elif len(self.ag[i].path) == 1:
                     self.ag[i].dest = -1
                     self.ag[i].path.remove(self.ag[i].path[0])
-               # print("path2:", self.ag[0].path)
-
-        for i in range(len(self.list_pok)):
-            self.pok.insert(i, self.list_pok[i])
 
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
@@ -234,6 +223,16 @@ class Student_code:
         ttl = self.client.time_to_end()
         print(ttl, self.client.get_info())
 
+    # check of we click on the close button
+    def check_click(self, stop_button):
+        mouse_pos = pygame.mouse.get_pos()
+        if stop_button.top_rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0]:
+                self.client.stop()
+                pygame.quit()
+                exit(0)
+
+    # return a list of a pokemon
     def get_list_pokemon(self):
         pok = []
         pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
@@ -245,6 +244,7 @@ class Student_code:
             pok.append(t)
         return pok
 
+    # return a list of a agents
     def get_list_agents(self):
         ag = dict()
         agents = json.loads(self.client.get_agents(),
@@ -262,32 +262,14 @@ class Student_code:
             a.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
         return ag
 
-    def agent_pass(self, path, pok):
-        ans = self.edge(pok)
-        src = ans[0]
-        dest = ans[1]
-        if len(path) == 2:
-            if src == path[0] and dest == path[1]:
-                return True
-        return False
-
     # decorate scale with the correct values
-
     def my_scale(self, data, x=False, y=False):
         if x:
             return scale(data, 50, self.screen.get_width() - 50, self.min_x, self.max_x)
         if y:
             return scale(data, 50, self.screen.get_height() - 50, self.min_y, self.max_y)
 
-    def shortest_dist(self, agent_id, node_id: int) -> float:
-        if self.ag[agent_id].dest == -1:
-            graphAlgo = GraphAlgo(self.graph)
-            dist = graphAlgo.shortest_path(self.ag[agent_id].src, node_id)
-            return dist
-        else:
-            ans = (sys.maxsize, -1)
-            return ans
-
+    # return the edge the pokemon on
     def edge(self, pok: Pokemon):
         for s in self.graph.Edges.keys():
             for dest in self.graph.Edges[s].keys():
@@ -300,27 +282,26 @@ class Student_code:
                         ans = (s, dest)
                         return ans
 
+    # return the total grade in any time
     def get_grade(self):
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.grade
 
+    # return the level in any time
     def get_level(self):
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.game_level
 
-    def get_move(self):
-        info_json = self.client.get_info()
-        info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
-        return info.GameServer.moves
-
+    # return the number of agents grade in any time
     def get_number_of_agents(self):
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.agents
 
 
+# build a graph
 def get_graph(graph_json):
     graph = json.loads(graph_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
     g = DiGraph()
@@ -333,6 +314,7 @@ def get_graph(graph_json):
     return g
 
 
+# calculate pow
 def math_pow(a, b):
     i = 0
     ans = 0
@@ -341,12 +323,14 @@ def math_pow(a, b):
     return ans
 
 
+# check if two pokemon are equaled
 def eq(p1: Pokemon, p2: Pokemon):
     if p1.x == p2.x and p1.y == p2.y and p1.type == p2.type and p1.value == p2.value and p1.catch == p2.catch:
         return True
     return False
 
 
+# check if the pokemon are inside the list
 def inside(p: Pokemon, l_p: list):
     for i in range(len(l_p)):
         if eq(p, l_p[i]):

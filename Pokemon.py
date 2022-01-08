@@ -16,6 +16,7 @@ class Pokemon:
         self.y = float(pos[1])
         self.graph = graph
         self.catch = False
+        self.belong=False
 
     def distance(self, i: int):
         x1 = self.graph.get_all_v()[i].x

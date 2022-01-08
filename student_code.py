@@ -59,7 +59,7 @@ class Student_code:
         pygame.font.init()
         FONT = pygame.font.SysFont('Arial', 20, bold=True)  # to write the node
         FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)  # to write the grade and ttl
-        FONT3 = pygame.font.SysFont('comicsansms', 35, bold=True)  # to write the level
+        FONT3 = pygame.font.SysFont('comicsansms', 40, bold=True)  # to write the level
         FONT4 = pygame.font.SysFont('Arial', 15, bold=True)  # to write the value pf the pokemon
 
         radius = 15
@@ -82,106 +82,114 @@ class Student_code:
             c += 1
 
         self.client.start()  # start the game
-        while self.client.is_running() == 'true':
-            display.update()
-            self.clock.tick(10)
+        try:
+            while self.client.is_running() == 'true':
+                display.update()
+                self.clock.tick(10)
 
-            # load all the pokemon
-            pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
-            pokemons = [p.Pokemon for p in pokemons]
-            self.list_pok = self.get_list_pokemon()
-            for p in pokemons:
-                x, y, _ = p.pos.split(',')
-                p.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
+                # load all the pokemon
+                pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
+                pokemons = [p.Pokemon for p in pokemons]
+                self.list_pok = self.get_list_pokemon()
+                for p in pokemons:
+                    x, y, _ = p.pos.split(',')
+                    p.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
 
-            # load all the agent
-            self.agents = json.loads(self.client.get_agents(), object_hook=lambda d: SimpleNamespace(**d)).Agents
-            self.agents = [agent.Agent for agent in self.agents]
-            for a in self.agents:
-                x, y, _ = a.pos.split(',')
-                a.pos = SimpleNamespace(x=self.my_scale(
-                    float(x), x=True), y=self.my_scale(float(y), y=True))
-            self.ag = self.get_list_agents()
+                # load all the agent
+                self.agents = json.loads(self.client.get_agents(), object_hook=lambda d: SimpleNamespace(**d)).Agents
+                self.agents = [agent.Agent for agent in self.agents]
+                for a in self.agents:
+                    x, y, _ = a.pos.split(',')
+                    a.pos = SimpleNamespace(x=self.my_scale(
+                        float(x), x=True), y=self.my_scale(float(y), y=True))
+                self.ag = self.get_list_agents()
 
-            # check event
-            for eve in pygame.event.get():
-                if eve.type == pygame.QUIT:
-                    self.client.stop_connection()
-                    pygame.quit()
-                    exit(0)
+                # check event
+                for eve in pygame.event.get():
+                    if eve.type == pygame.QUIT:
+                        self.client.stop_connection()
+                        pygame.quit()
+                        exit(0)
 
-            # put a image to be background
-            background = pygame.image.load('imags/background.jpg')
-            change_scale = pygame.transform.scale(background, (self.screen.get_width(), self.screen.get_height()))
-            background_rect = background.get_rect(topleft=(0, 0))
-            self.screen.blit(change_scale, background_rect)
+                # put a image to be background
+                background = pygame.image.load('imags/background.jpg')
+                change_scale = pygame.transform.scale(background, (self.screen.get_width(), self.screen.get_height()))
+                background_rect = background.get_rect(topleft=(0, 0))
+                self.screen.blit(change_scale, background_rect)
 
-            # put a stop button
-            stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
-            pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
-            self.screen.blit(stop_button.text_surf, stop_button.text_rect)
+                # put a stop button
+                stop_button = Rect_text('stop', 75, 35, (25, 25), self.screen, FONT, (255, 255, 255), (255, 0, 0))
+                pygame.draw.rect(self.screen, stop_button.top_color, stop_button.top_rect)
+                self.screen.blit(stop_button.text_surf, stop_button.text_rect)
 
-            # write on the screen the grade,ttl and the level
-            grade = 'grade=' + str(self.get_grade())
-            g_srf = FONT2.render(grade, True, Color(255, 255, 255))
-            rect_srf = g_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 90))
-            self.screen.blit(g_srf, rect_srf)
+                # write on the screen the grade,ttl and the level
+                grade = 'grade=' + str(self.get_grade())
+                g_srf = FONT2.render(grade, True, Color(255, 255, 255))
+                rect_srf = g_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 90))
+                self.screen.blit(g_srf, rect_srf)
 
-            ttl = 'ttl=' + str(self.client.time_to_end())
-            ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
-            rect2_srf = ttl_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 45))
-            self.screen.blit(ttl_srf, rect2_srf)
+                ttl = 'ttl=' + str(self.client.time_to_end())
+                ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
+                rect2_srf = ttl_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 45))
+                self.screen.blit(ttl_srf, rect2_srf)
 
-            level = 'level=' + str(self.get_level())
-            level_srf = FONT3.render(level, True, Color(255, 0, 0))
-            rect5_srf = level_srf.get_rect(center=(self.screen.get_width() / 2, 40))
-            self.screen.blit(level_srf, rect5_srf)
+                level = 'level ' + str(self.get_level())
+                level_srf = FONT3.render(level, True, Color(100, 107, 242))
+                rect5_srf = level_srf.get_rect(center=(self.screen.get_width() / 2, 40))
+                self.screen.blit(level_srf, rect5_srf)
 
-            # paint the nodes
-            for n in self.paint_g.Nodes:
-                x = self.my_scale(n.pos.x, x=True)
-                y = self.my_scale(n.pos.y, y=True)
-                gfxdraw.filled_circle(self.screen, int(x), int(y), radius, Color(64, 80, 174))
-                gfxdraw.aacircle(self.screen, int(x), int(y), radius, Color(255, 255, 255))
-                id_srf = FONT.render(str(n.id), True, Color(0, 0, 0))
-                rect3_srf = id_srf.get_rect(center=(x, y))
-                self.screen.blit(id_srf, rect3_srf)
+                self.check_click(stop_button)
 
-            # paint the edges
-            for e in self.paint_g.Edges:
-                src = next(n for n in self.paint_g.Nodes if n.id == e.src)
-                dest = next(n for n in self.paint_g.Nodes if n.id == e.dest)
-                src_x = self.my_scale(src.pos.x, x=True)
-                src_y = self.my_scale(src.pos.y, y=True)
-                dest_x = self.my_scale(dest.pos.x, x=True)
-                dest_y = self.my_scale(dest.pos.y, y=True)
-                pygame.draw.line(self.screen, Color(255, 255, 255), (src_x, src_y), (dest_x, dest_y))
+                # paint the nodes
+                for n in self.paint_g.Nodes:
+                    x = self.my_scale(n.pos.x, x=True)
+                    y = self.my_scale(n.pos.y, y=True)
+                    gfxdraw.filled_circle(self.screen, int(x), int(y), radius, Color(205, 142, 236))
+                    gfxdraw.aacircle(self.screen, int(x), int(y), radius, Color(255, 255, 255))
+                    id_srf = FONT.render(str(n.id), True, Color(0, 0, 0))
+                    rect3_srf = id_srf.get_rect(center=(x, y))
+                    self.screen.blit(id_srf, rect3_srf)
 
-            # paint the agents
-            for agent in self.agents:
-                a = pygame.image.load('imags/player.png')
-                a_scale = pygame.transform.scale(a, (30, 30))
-                a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
-                self.screen.blit(a_scale, a_rect)
+                # paint the edges
+                for e in self.paint_g.Edges:
+                    src = next(n for n in self.paint_g.Nodes if n.id == e.src)
+                    dest = next(n for n in self.paint_g.Nodes if n.id == e.dest)
+                    src_x = self.my_scale(src.pos.x, x=True)
+                    src_y = self.my_scale(src.pos.y, y=True)
+                    dest_x = self.my_scale(dest.pos.x, x=True)
+                    dest_y = self.my_scale(dest.pos.y, y=True)
+                    pygame.draw.line(self.screen, Color(255, 255, 255), (src_x, src_y), (dest_x, dest_y))
 
-            # paint the Pokemon's
-            for p in pokemons:
-                # any type have different shape
-                if p.type > 0:
-                    pika = pygame.image.load('imags/pikachu 2.png')
-                else:
-                    pika = pygame.image.load('imags/pikachu.png')
-                pika_scale = pygame.transform.scale(pika, (30, 30))
-                pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
-                self.screen.blit(pika_scale, pika_rect)
-                s_p = str(p.value)
-                value_srf = FONT4.render(s_p, True, Color(255, 255, 255))
-                rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
-                self.screen.blit(value_srf, rect3)
+                # paint the agents
+                for agent in self.agents:
+                    a = pygame.image.load('imags/player.png')
+                    a_scale = pygame.transform.scale(a, (30, 30))
+                    a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
+                    self.screen.blit(a_scale, a_rect)
 
-            self.algo()
-            if self.flag != -1:
-                self.client.move()
+                # paint the Pokemon's
+                for p in pokemons:
+                    # any type have different shape
+                    if p.type > 0:
+                        pika = pygame.image.load('imags/pikachu 2.png')
+                    else:
+                        pika = pygame.image.load('imags/pikachu.png')
+                    pika_scale = pygame.transform.scale(pika, (30, 30))
+                    pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
+                    self.screen.blit(pika_scale, pika_rect)
+                    s_p = str(p.value)
+                    value_srf = FONT4.render(s_p, True, Color(255, 255, 255))
+                    rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
+                    self.screen.blit(value_srf, rect3)
+
+                self.algo()
+                if self.flag != -1:
+                    self.client.move()
+        except Exception:
+            pygame.quit()
+            exit(0)
+            self.client.stop_connection()
+            sys.exit()
 
     def algo(self):
         for agent in self.ag.keys():  # over all the agent and allocated to any of them a pokemon
@@ -193,6 +201,8 @@ class Student_code:
                 # over all the pokemon and allocated the pokemon that most closes to the agent
                 for pok in self.list_pok:
                     if self.dead_pok != [] and inside(pok, self.dead_pok) != -1:
+                        continue
+                    if pok.belong:
                         continue
                     if self.flag == -1:
                         if eq(self.ag[agent].pok, pok):
@@ -213,7 +223,7 @@ class Student_code:
                 if i != -1 and p != []:
                     self.ag[agent].path = p
                     self.ag[agent].pok = i
-
+                    i.belong = True
         for i in self.ag.keys():  # over all the agents to choose they next edges
             if self.ag[i].path:
                 if len(self.ag[i].path) > 1 and self.ag[i].last_edges is not None:
@@ -222,7 +232,7 @@ class Student_code:
                         self.ag[i].count += 1
                     else:
                         self.ag[i].count = 0
-                if self.ag[i].count < 9:
+                if self.ag[i].count < 5:
                     self.flag = 0
                     self.client.choose_next_edge(
                         '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
@@ -248,6 +258,7 @@ class Student_code:
     # check of we click on the close button
     def check_click(self, stop_button):
         mouse_pos = pygame.mouse.get_pos()
+        ttl = int(self.client.time_to_end())
         if stop_button.top_rect.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0]:
                 self.client.stop()
@@ -389,7 +400,8 @@ def distance(pos1: tuple, pos2: tuple):
 
 
 if __name__ == '__main__':
-    Student_code()
+    s = Student_code()
+
 """
 The code below should be improved significantly:
 The GUI and the "algo" are mixed - refactoring using MVC design pattern is required.

@@ -26,6 +26,8 @@ After activating the server using this line, put the following line in the secon
 `Python3 ex4.py`
 
  and press enter now the game is running, enjoy
+ 
+ https://user-images.githubusercontent.com/93201414/148663710-3a22504b-71d7-4ba7-a9ef-b1444e761e39.mp4
 
 ### Example of Case 11: 
 As you can see in the game, we can see the Pokemon on the game board and the agents who are aiming to catch Pokemon. 

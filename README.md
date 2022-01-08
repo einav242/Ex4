@@ -9,12 +9,16 @@ The goal is to maximize the overall sum of weights of the “grabbed” pokemons
 As part of this project, we can use a data structure and algorithms on graphs (oriented and weighted).
 
 ## The algoritm : 
-We built an algorithm that works in such a way that we go through all the agents and every agent embedding the Pokemon closest to it, taking into account which Pokemon rib sits on. 
-In the edge function – we will check which Pokemon side sits on.
+The goal is for every agent to catch as many Pokemon as possible.
+So we created an algorithm that works in such a way that we go through all the agents. 
+And each agent places the Pokemon closest to him , taking into account which Pokemon rib sits on. 
+In the edge function – we will check which Pokemon side sits on. 
+And to know which Pokemon is best for the agent to catch (on the shortest route) 
+Considered by the shortpath function the shortest route so that the agent can catch the Pokemon .
 
 
-
-### How to Run
+### How to Run The Game: 
+To run our project you must open 2 CMD windows simultaneously from within the project 
 
 
 ### Thr Result:
@@ -40,6 +44,11 @@ In the edge function – we will check which Pokemon side sits on.
 
 
 ### Example of Case 11: 
+As you can see in the game, we can see the Pokemon on the game board and the agents who are aiming to catch Pokemon. 
+On the bottom right we can see the time left for the end of the game and the scoring.
+And a stop button if you want to stop the game in the middle. 
+
+<img width="809" alt="Capture" src="https://user-images.githubusercontent.com/93201414/148661054-e71bb830-b930-47e6-81e8-ef6865ee0e67.PNG">
 
 
 

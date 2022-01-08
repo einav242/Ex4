@@ -202,8 +202,6 @@ class Student_code:
                 for pok in self.list_pok:
                     if self.dead_pok != [] and inside(pok, self.dead_pok) != -1:
                         continue
-                    if pok.belong:
-                        continue
                     if self.flag == -1:
                         if eq(self.ag[agent].pok, pok):
                             self.dead_pok.append(pok)
@@ -232,7 +230,7 @@ class Student_code:
                         self.ag[i].count += 1
                     else:
                         self.ag[i].count = 0
-                if self.ag[i].count < 5:
+                if self.ag[i].count < 9:
                     self.flag = 0
                     self.client.choose_next_edge(
                         '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')

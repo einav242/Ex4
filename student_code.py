@@ -57,6 +57,8 @@ class Student_code:
         if stop_button.top_rect.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0]:
                 self.client.stop()
+                pygame.quit()
+                exit(0)
 
     def game(self):
         pygame.font.init()
@@ -67,7 +69,13 @@ class Student_code:
             src = self.edge(pok)[0]
             self.client.add_agent("{\"id\":" + str(src) + "}")
         self.client.start()
+
         while self.client.is_running() == 'true':
+            if int(self.client.time_to_end()) < 100:
+                self.client.stop()
+                pygame.quit()
+                exit(0)
+
             pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
             pokemons = [p.Pokemon for p in pokemons]
             self.list_pok = self.get_list_pokemon()
@@ -85,6 +93,7 @@ class Student_code:
             self.ag = self.get_list_agents()
             for eve in pygame.event.get():
                 if eve.type == pygame.QUIT:
+                    self.client.stop_connection()
                     pygame.quit()
                     exit(0)
 
@@ -133,7 +142,7 @@ class Student_code:
                 src_y = self.my_scale(src.pos.y, y=True)
                 dest_x = self.my_scale(dest.pos.x, x=True)
                 dest_y = self.my_scale(dest.pos.y, y=True)
-                pygame.draw.line(self.screen, Color(255,255,255), (src_x, src_y), (dest_x, dest_y))
+                pygame.draw.line(self.screen, Color(255, 255, 255), (src_x, src_y), (dest_x, dest_y))
 
             for agent in agents:
                 a = pygame.image.load('imags/player.png')
@@ -274,7 +283,6 @@ class Student_code:
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.game_level
-
 
 
 def get_graph(graph_json):

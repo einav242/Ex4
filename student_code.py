@@ -49,6 +49,7 @@ class Student_code:
         self.max_y = max(list(self.paint_g.Nodes), key=lambda n1: n1.pos.y).pos.y
         self.paths = dict()
         self.ag = None
+        self.agents = None
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
         self.game()
 
@@ -65,17 +66,29 @@ class Student_code:
         FONT = pygame.font.SysFont('Arial', 20, bold=True)
         FONT2 = pygame.font.SysFont('comicsansms', 25, bold=True)
         radius = 15
-        for pok in self.list_pok:
-            src = self.edge(pok)[0]
-            self.client.add_agent("{\"id\":" + str(src) + "}")
+        num = self.get_number_of_agents()
+        c = 0
+        while c < num:
+            max_value = -sys.maxsize
+            temp_pok = None
+            for pok in self.list_pok:
+                if pok.catch:
+                    continue
+                v = pok.value
+                if v > max_value:
+                    max_value = v
+                    temp_pok = pok
+            if temp_pok is not None:
+                src = self.edge(temp_pok)[0]
+                temp_pok.catch = True
+                self.client.add_agent("{\"id\":" + str(src) + "}")
+            c += 1
+
         self.client.start()
-
         while self.client.is_running() == 'true':
-            if int(self.client.time_to_end()) < 100:
-                self.client.stop()
-                pygame.quit()
-                exit(0)
+            display.update()
 
+            self.clock.tick(10)
             pokemons = json.loads(self.client.get_pokemons(), object_hook=lambda d: SimpleNamespace(**d)).Pokemons
             pokemons = [p.Pokemon for p in pokemons]
             self.list_pok = self.get_list_pokemon()
@@ -83,10 +96,10 @@ class Student_code:
                 x, y, _ = p.pos.split(',')
                 p.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
 
-            agents = json.loads(self.client.get_agents(),
-                                object_hook=lambda d: SimpleNamespace(**d)).Agents
-            agents = [agent.Agent for agent in agents]
-            for a in agents:
+            self.agents = json.loads(self.client.get_agents(),
+                                     object_hook=lambda d: SimpleNamespace(**d)).Agents
+            self.agents = [agent.Agent for agent in self.agents]
+            for a in self.agents:
                 x, y, _ = a.pos.split(',')
                 a.pos = SimpleNamespace(x=self.my_scale(
                     float(x), x=True), y=self.my_scale(float(y), y=True))
@@ -100,7 +113,7 @@ class Student_code:
             self.screen.fill(0)
 
             background = pygame.image.load('imags/background.jpg')
-            change_scale = pygame.transform.scale(background, (1080, 720))
+            change_scale = pygame.transform.scale(background, (self.screen.get_width(), self.screen.get_height()))
             background_rect = background.get_rect(topleft=(0, 0))
             self.screen.blit(change_scale, background_rect)
 
@@ -112,19 +125,24 @@ class Student_code:
 
             grade = 'grade=' + str(self.get_grade())
             g_srf = FONT2.render(grade, True, Color(255, 255, 255))
-            rect_srf = g_srf.get_rect(center=(920, 630))
+            rect_srf = g_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 90))
             self.screen.blit(g_srf, rect_srf)
 
             ttl = 'ttl=' + str(self.client.time_to_end())
             ttl_srf = FONT2.render(ttl, True, Color(255, 255, 255))
-            rect2_srf = ttl_srf.get_rect(center=(920, 675))
+            rect2_srf = ttl_srf.get_rect(center=(self.screen.get_width() - 160, self.screen.get_height() - 45))
             self.screen.blit(ttl_srf, rect2_srf)
 
-            level = 'level=' + str(self.get_level())
+            level = 'move=' + str(self.get_move())
             level_srf = FONT2.render(level, True, Color(255, 255, 255))
-            rect4_srf = level_srf.get_rect(center=(990, 50))
+            rect4_srf = level_srf.get_rect(center=(self.screen.get_width() - 300, self.screen.get_height() - 45))
             self.screen.blit(level_srf, rect4_srf)
             self.check_click(stop_button)
+
+            move = 'level=' + str(self.get_level())
+            move_srf = FONT2.render(move, True, Color(255, 255, 255))
+            rect5_srf = move_srf.get_rect(center=(self.screen.get_width() / 2, 50))
+            self.screen.blit(move_srf, rect5_srf)
 
             for n in self.paint_g.Nodes:
                 x = self.my_scale(n.pos.x, x=True)
@@ -144,7 +162,7 @@ class Student_code:
                 dest_y = self.my_scale(dest.pos.y, y=True)
                 pygame.draw.line(self.screen, Color(255, 255, 255), (src_x, src_y), (dest_x, dest_y))
 
-            for agent in agents:
+            for agent in self.agents:
                 a = pygame.image.load('imags/player.png')
                 a_scale = pygame.transform.scale(a, (30, 30))
                 a_rect = a.get_rect(topleft=(int(agent.pos.x), int(agent.pos.y)))
@@ -159,13 +177,11 @@ class Student_code:
                 pika_scale = pygame.transform.scale(pika, (30, 30))
                 pika_rect = pika.get_rect(topleft=(int(p.pos.x), int(p.pos.y)))
                 self.screen.blit(pika_scale, pika_rect)
-                value_srf = FONT3.render(str(p.value), True, Color(255, 255, 255))
+                s_p = str(p.value)
+                value_srf = FONT3.render(s_p, True, Color(255, 255, 255))
                 rect3 = value_srf.get_rect(center=(int(p.pos.x), int(p.pos.y)))
                 self.screen.blit(value_srf, rect3)
 
-            display.update()
-
-            self.clock.tick(10)
             self.algo()
             self.client.move()
 
@@ -180,9 +196,9 @@ class Student_code:
                     src = edge[0]
                     dest = edge[1]
                     graphAlgo = GraphAlgo(self.graph)
-                    ans = graphAlgo.TSP([self.ag[agent].src, src, dest])
-                    dist = ans[1] + self.graph.Edges[src][dest]
-                    path = ans[0]
+                    ans = graphAlgo.shortest_path(self.ag[agent].src, src)
+                    dist = ans[0] + self.graph.Edges[src][dest]
+                    path = ans[1]
                     path.append(dest)
                     if dist < m:
                         m = dist
@@ -193,11 +209,13 @@ class Student_code:
                     self.ag[agent].pok = i
 
         for i in self.ag.keys():
-            # print("path1:", self.ag[0].path)
+           # print("path1:", self.ag[0].path)
             if self.ag[i].path:
-                # print("path2:", self.ag[0].path)
                 self.client.choose_next_edge(
                     '{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
+                # print('{"agent_id":' + str(i) + ', "next_node_id":' + str(self.ag[i].path[0]) + '}')
+                # print(self.ag[i].pok)
+                # print(self.edge(self.ag[i].pok))
                 self.ag[i].src = self.ag[i].path[0]
                 if len(self.ag[i].path) > 1:
                     self.ag[i].dest = self.ag[i].path[1]
@@ -205,10 +223,10 @@ class Student_code:
                 elif len(self.ag[i].path) == 1:
                     self.ag[i].dest = -1
                     self.ag[i].path.remove(self.ag[i].path[0])
-                    temp = inside(self.ag[i].pok, self.list_pok)
-                    if temp != -1:
-                        self.pok.insert(temp, True)
-                # print("pok:", self.ag[i].pok)
+               # print("path2:", self.ag[0].path)
+
+        for i in range(len(self.list_pok)):
+            self.pok.insert(i, self.list_pok[i])
 
         for i in self.ag.keys():
             self.paths[i] = self.ag[i].path
@@ -226,7 +244,6 @@ class Student_code:
             t = Pokemon(p.type, p.value, pos1, self.graph)
             pok.append(t)
         return pok
-        return pok
 
     def get_list_agents(self):
         ag = dict()
@@ -237,13 +254,22 @@ class Student_code:
             x, y, _ = a.pos.split(',')
             pos = (x, y)
             temp = Agents(a.id, a.value, a.src, a.dest, a.speed, pos, self.graph)
-            if self.ag != None:
+            if self.ag is not None:
                 temp.pok = self.ag[a.id].pok
             if self.paths != {}:
                 temp.path = self.paths[a.id]
             ag[a.id] = temp
             a.pos = SimpleNamespace(x=self.my_scale(float(x), x=True), y=self.my_scale(float(y), y=True))
         return ag
+
+    def agent_pass(self, path, pok):
+        ans = self.edge(pok)
+        src = ans[0]
+        dest = ans[1]
+        if len(path) == 2:
+            if src == path[0] and dest == path[1]:
+                return True
+        return False
 
     # decorate scale with the correct values
 
@@ -283,6 +309,16 @@ class Student_code:
         info_json = self.client.get_info()
         info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
         return info.GameServer.game_level
+
+    def get_move(self):
+        info_json = self.client.get_info()
+        info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+        return info.GameServer.moves
+
+    def get_number_of_agents(self):
+        info_json = self.client.get_info()
+        info = json.loads(info_json, object_hook=lambda json_dict: SimpleNamespace(**json_dict))
+        return info.GameServer.agents
 
 
 def get_graph(graph_json):

@@ -41,7 +41,7 @@ In the first CMD write the following line: java -jar Ex4_Server_v0.0.jar 0 to st
 In the second CMD write the following line: Python3 test_student_code.py
 If it runs without errors a sign that the test has passed successfully
 
-### Thr Result:
+### The Result:
 
 | Case | Grade | Move | 
 | ------- | ------- | ------- | 
@@ -61,4 +61,8 @@ If it runs without errors a sign that the test has passed successfully
 | 13 | 204 | 596 |
 | 14 | 173 | 289 |
 | 15 | 269 | 585 |
+
+### UML:
+![WhatsApp Image 2022-01-09 at 13 12 49](https://user-images.githubusercontent.com/93201414/148679965-62a4338f-c28d-4cd1-9694-5977ff57a86c.jpeg)
+
 
